@@ -1,6 +1,6 @@
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
-client_id = "MyTestClient"
+client_id = "MyTest Client"
 endpoint = "your-iot-endpoint.amazonaws.com"
 root_ca = "AmazonRootCA1.pem"
 private_key = "private.key"
@@ -27,7 +27,7 @@ def send_update(color):
     if color == Color.RED:
         client.publish(topic, "RED IN", 1)
     elif color == Color.BLUE:
-        client.publish("my/topic", "BLUE IN", 1)
+        client.publish(topic, "BLUE IN", 1)
         
 
 def apply_update(client, userdata, message): # applica update mandati da IoT
