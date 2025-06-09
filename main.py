@@ -11,10 +11,13 @@ color_sensor_old = color_sensor.color()
 def send_update(color):
     if color == Color.RED:
         print(color)
-        # Chiama IoT e fa
+        # chiamate IoT e fa
+        # IoT ritorna cambiamenti
     elif color == Color.BLUE:
         print(color)
-        # Chiama IoT e fa
+        # chiamate IoT e fa
+        # IoT ritorna cambiamenti
+    # applicazione cambiamenti
         
 def main():
     while True:
