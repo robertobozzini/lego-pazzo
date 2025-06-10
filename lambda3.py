@@ -1,5 +1,18 @@
 import json
 import boto3
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+
+client_id = "MyTest Client"
+endpoint = "your-iot-endpoint.amazonaws.com"
+root_ca = "AmazonRootCA1.pem"
+private_key = "private.key"
+certificate = "certificate.pem.crt"
+topic_S = "$aws/things/Centralina/shadow/update/documents"
+topic_R = "topic3"
+
+client = AWSIoTMQTTClient(client_id)
+client.configureEndpoint(endpoint, 8883)
+client.configureCredentials(root_ca, private_key, certificate)
 
 sns = boto3.client('sns')
 SNS_TOPIC_ARN = 'arn:aws:sns:REGIONE:ACCOUNT_ID:NOME_TOPIC'
@@ -29,10 +42,7 @@ def lambda_handler(event, context):
     except json.JSONDecodeError:
         data = {"raw": message}
 
-    # Invia a SNS
-    sns.publish(
-        TopicArn=SNS_TOPIC_ARN,
-        Message=json.dumps(data)
-    )
+    # Invia a IoT
+    client.publish(topic_S, json.dumps({"id" : "red_car", "status" : "in"}), 1)
 
     return {'statusCode': 200}
