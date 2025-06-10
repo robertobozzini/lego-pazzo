@@ -4,6 +4,23 @@ import boto3
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('NomeTabella')
 
+sns = boto3.client('sns')   
+sns_topic_arn = 'arn:aws:sns:REGIONE:ACCOUNT_ID:NotifySecondLambdaTopic'
+
+
+def lambda2_send():
+    response=table.scan()
+    items=response['Items']
+    
+    sns.publish(
+        TopicArn=sns_topic_arn,
+        Message=json.dumps({"records": items})
+    )
+
+    return {"statusCode": 200, "message": "Inviato a SNS"}
+
+
+
 def lambda_handler(event, context):
     # Event SNS contiene Records -> [ { Sns: { Message: ... } } ]
     for record in event['Records']:
@@ -45,9 +62,12 @@ def lambda_handler(event, context):
 
             if id_val_car=="red":
                 #cambiamo alcuni sensori
+                continue
             else:
                 #cambio altri
+                continue
     
+    lambda2_send()
     
 
 
