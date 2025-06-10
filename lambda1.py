@@ -31,18 +31,18 @@ def lambda_handler(event, context):
 
         if device=="red_car" or device=="blue_car":
             id_val_car = message['id']
-            car_status = message['status']  # esempio: {"status": "active", "count": 12}
+            car_status = message['stato']  # esempio: {"status": "active", "count": 12}
 
             verifica=table.get_item(
                 Key={'id': id_val_car}
             )
             item = verifica.get('Item')
 
-            if item and item.get('status')==car_status:
+            if item and item.get('stato')==car_status:
                 cond=False
                 continue
 
-            update_expression = "SET status = :s"
+            update_expression = "SET stato = :s"
             expr_vals = {":s": car_status}
 
             table.update_item(
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
             )
 
             id_gate="gate_motor"
-            gate_status=message['status']   
+            gate_status=message['stato']   
 
             if gate_status=="in":
                 expr_vals={":s": 90}   
