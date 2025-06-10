@@ -17,24 +17,24 @@ client.connect()
 
 def send_update(color):
     if color == Color.RED:
-        client.publish(topic, json.dumps({"id" : "red_car", "status" : "in"}), 1)
+        client.publish(topic, json.dumps({"id" : "red_car", "stato" : "in"}), 1)
     elif color == Color.BLUE:
-        client.publish(topic, json.dumps({"id" : "blue_car", "status" : "in"}), 1)
+        client.publish(topic, json.dumps({"id" : "blue_car", "stato" : "in"}), 1)
     elif color_sensor_old == Color.RED:
-        client.publish(topic, json.dumps({"id" : "red_car", "status" : "out"}), 1) 
+        client.publish(topic, json.dumps({"id" : "red_car", "stato" : "out"}), 1) 
     elif color_sensor_old == Color.BLUE:
-        client.publish(topic, json.dumps({"id" : "blue_car", "status" : "out"}), 1) 
+        client.publish(topic, json.dumps({"id" : "blue_car", "stato" : "out"}), 1) 
     color_sensor_old = color
     
-def modify_status(id, status): # applica le modifiche
+def modify_stato(id, stato): # applica le modifiche
     if id == "gate_motor":
-        gate_motor.angle(status)
+        gate_motor.angle(stato)
     return
 
 def apply_update(client, userdata, message): # riceve update mandati da IoT
     data = json.loads(message.payload.decode())
-    for id, status in data.items():
-        modify_status(id, status)
+    for id, stato in data.items():
+        modify_stato(id, stato)
         
 client.subscribe(topic, 1, apply_update)
 
