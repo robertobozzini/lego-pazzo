@@ -17,9 +17,9 @@ client.connect()
 
 def send_update(color):
     if color == Color.RED:
-        client.publish(topic, json.dumps({"id" : "red", "status" : "in"}), 1)
+        client.publish(topic, json.dumps({"device" : "car", "id" : "red", "status" : "in"}), 1)
     elif color == Color.BLUE:
-        client.publish(topic, json.dumps({"id" : "blue", "status" : "in"}), 1)
+        client.publish(topic, json.dumps({"device" : "car","id" : "blue", "status" : "in"}), 1)
         
 def modify_status(device, status): # applica le modifiche
     if device == "gate_motor":
