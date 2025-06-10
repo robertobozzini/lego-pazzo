@@ -24,6 +24,7 @@ def send_update(color):
 def modify_status(device, status): # applica le modifiche
     if device == "gate_motor":
         gate_motor.angle(status)
+    return
 
 def apply_update(client, userdata, message): # riceve update mandati da IoT
     data = json.loads(message.payload.decode())
