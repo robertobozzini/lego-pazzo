@@ -31,7 +31,7 @@ def send_update(color):
         
 
 def apply_update(client, userdata, message): # applica update mandati da IoT
-    print(message.payload.deocde())
+    print(message.payload.decode())
     
 client.subscribe(topic, 1, apply_update)       
 
@@ -39,5 +39,5 @@ client.subscribe(topic, 1, apply_update)
 def main():
     while True:
         if color_sensor.color() != color_sensor_old: # quando cambia colore chiama AWS
-            color_sensor_old = color_sensor.color()
+            global color_sensor_old = color_sensor.color()
             send_update(color_sensor.color())
