@@ -5,7 +5,7 @@ dynamodb = boto3.resource('dynamodb', region_name='eu-north-1')
 table = dynamodb.Table('lego-pazzo')
 
 sns = boto3.client('sns')   
-sns_topic_arn = 'arn:aws:sns:REGIONE:ACCOUNT_ID:NotifySecondLambdaTopic'
+sns_topic_arn = 'arn:aws:sns:eu-north-1:919788038405:topic2'
 
 
 def lambda2_send():
