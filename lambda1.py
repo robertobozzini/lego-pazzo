@@ -23,12 +23,13 @@ def lambda2_send():
 
 def lambda_handler(event, context):
     # Event SNS contiene Records -> [ { Sns: { Message: ... } } ]
+    cond=True
     for record in event['Records']:
         message = json.loads(record['Sns']['Message'])
         
         device=message['id']
 
-        if device=="red_car" or "blue_car":
+        if device=="red_car" or device=="blue_car":
             id_val_car = message['id']
             car_status = message['status']  # esempio: {"status": "active", "count": 12}
 
@@ -38,6 +39,7 @@ def lambda_handler(event, context):
             item = verifica.get('Item')
 
             if item and item.get('status')==car_status:
+                True=False
                 continue
 
             update_expression = "SET status = :s"
@@ -75,7 +77,7 @@ def lambda_handler(event, context):
                 #cambio altri
                 continue
     
-    lambda2_send()
+    if cond==True: lambda2_send()
     
 
 
