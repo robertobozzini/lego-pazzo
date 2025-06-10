@@ -43,6 +43,6 @@ def lambda_handler(event, context):
         data = {"raw": message}
 
     # Invia a IoT
-    client.publish(topic_S, json.dumps({"id" : "red_car", "status" : "in"}), 1)
+    client.publish(topic_S, json.dumps(data), 1)
 
     return {'statusCode': 200}
