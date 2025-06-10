@@ -1,6 +1,5 @@
 from EV3_setup import *
 from IoT_integration import *
-import json
 
 def main():
     global color_sensor_old
