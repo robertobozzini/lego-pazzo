@@ -37,7 +37,8 @@ client.subscribe(topic, 1, apply_update)
 
 
 def main():
+    global color_sensor_old
     while True:
         if color_sensor.color() != color_sensor_old: # quando cambia colore chiama AWS
-            global color_sensor_old = color_sensor.color()
+            color_sensor_old = color_sensor.color()
             send_update(color_sensor.color())
