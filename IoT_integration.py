@@ -20,9 +20,12 @@ def send_update(color):
         client.publish(topic, json.dumps({"device" : "car", "id" : "red", "status" : "in"}), 1)
     elif color == Color.BLUE:
         client.publish(topic, json.dumps({"device" : "car", "id" : "blue", "status" : "in"}), 1)
-    else:
-        client.publish(topic, json.dumps({"device" : "car", "status" : "out"}), 1)
-        
+    elif color_sensor_old == Color.RED:
+        client.publish(topic, json.dumps({"device" : "car", "id" : "red", "status" : "out"}), 1) 
+    elif color_sensor_old == Color.BLUE:
+        client.publish(topic, json.dumps({"device" : "car", "id" : "blue", "status" : "out"}), 1) 
+    color_sensor_old = color
+    
 def modify_status(device, status): # applica le modifiche
     if device == "gate_motor":
         gate_motor.angle(status)
