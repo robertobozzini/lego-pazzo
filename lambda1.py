@@ -2,7 +2,7 @@ import json
 import boto3
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('NomeTabella')
+table = dynamodb.Table('lego-pazzo')
 
 sns = boto3.client('sns')   
 sns_topic_arn = 'arn:aws:sns:REGIONE:ACCOUNT_ID:NotifySecondLambdaTopic'
@@ -26,9 +26,9 @@ def lambda_handler(event, context):
     for record in event['Records']:
         message = json.loads(record['Sns']['Message'])
         
-        device=message['device']
+        device=message['id']
 
-        if device=="car":
+        if device=="red_car" or "blue_car":
             id_val_car = message['id']
             car_status = message['status']  # esempio: {"status": "active", "count": 12}
 
@@ -41,26 +41,26 @@ def lambda_handler(event, context):
                 ExpressionAttributeValues=expr_vals
             )
 
-            id_gate="gatemotor"
+            id_gate="gate_motor"
             gate_status=message['status']   
 
             if gate_status=="in":
                 expr_vals={":s": 90}   
 
                 table.update_item(
-                    Key={'id':'gate'},
+                    Key={'id':id_gate},
                     UpdateExpression=update_expression,
                     ExpressionAttributeValues=expr_vals
                 )
             else:
                 expr_vals={":s": 0}   
                 table.update_item(
-                    Key={'id':'gate'},
+                    Key={'id':id_gate},
                     UpdateExpression=update_expression,
                     ExpressionAttributeValues=expr_vals
                 )
 
-            if id_val_car=="red":
+            if id_val_car=="red_car":
                 #cambiamo alcuni sensori
                 continue
             else:
