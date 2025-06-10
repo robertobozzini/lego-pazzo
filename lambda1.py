@@ -39,7 +39,7 @@ def lambda_handler(event, context):
             item = verifica.get('Item')
 
             if item and item.get('status')==car_status:
-                True=False
+                cond=False
                 continue
 
             update_expression = "SET status = :s"
