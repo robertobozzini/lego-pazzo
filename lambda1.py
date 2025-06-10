@@ -55,7 +55,7 @@ def lambda_handler(event, context):
             gate_status=message['stato']   
 
             if gate_status=="in":
-                expr_vals={":s": 90}   
+                expr_vals={":s": "90"}   
 
                 table.update_item(
                     Key={'id':id_gate},
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
                     ExpressionAttributeValues=expr_vals
                 )
             else:
-                expr_vals={":s": 0}   
+                expr_vals={":s": "0"}   
                 table.update_item(
                     Key={'id':id_gate},
                     UpdateExpression=update_expression,
