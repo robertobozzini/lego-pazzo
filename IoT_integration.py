@@ -35,3 +35,5 @@ def apply_update(client, userdata, message): # riceve update mandati da IoT
     data = json.loads(message.payload.decode())
     for device, status in data.items():
         modify_status(device, status)
+        
+client.subscribe(topic, 1, apply_update)
