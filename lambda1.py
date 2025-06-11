@@ -63,7 +63,6 @@ def lambda_handler(event, context):
         item = verifica.get('Item')
 
         if not item or item.get('stato') != car_status:
-            print("dio bestia")
             table.update_item(
                 Key={'SK': id_val_car, 'PK':'sensori'},
                 UpdateExpression="SET stato = :s",
@@ -72,7 +71,7 @@ def lambda_handler(event, context):
 
             gate_value = "90" if car_status == "in" else "0"
             table.update_item(
-                Key={'SK': id_val_car, 'PK':'sensori'},
+                Key={'SK': "gate_motor", 'PK':'sensori'},
                 UpdateExpression="SET stato = :s",
                 ExpressionAttributeValues={":s": gate_value}
             )
