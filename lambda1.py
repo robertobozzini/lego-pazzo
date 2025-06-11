@@ -59,19 +59,20 @@ def lambda_handler(event, context):
         id_val_car = device
         car_status = message['stato']
 
-        verifica = table.get_item(Key={'SK': id_val_car})
+        verifica = table.get_item(Key={'SK': id_val_car, 'PK':'sensori'})
         item = verifica.get('Item')
 
         if not item or item.get('stato') != car_status:
+            print("dio bestia")
             table.update_item(
-                Key={'SK': id_val_car},
+                Key={'SK': id_val_car, 'PK':'sensori'},
                 UpdateExpression="SET stato = :s",
                 ExpressionAttributeValues={":s": car_status}
             )
 
             gate_value = "90" if car_status == "in" else "0"
             table.update_item(
-                Key={'SK': 'gate_motor'},
+                Key={'SK': id_val_car, 'PK':'sensori'},
                 UpdateExpression="SET stato = :s",
                 ExpressionAttributeValues={":s": gate_value}
             )
