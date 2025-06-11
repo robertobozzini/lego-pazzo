@@ -8,6 +8,10 @@ table = dynamodb.Table('lego-pazzo2')
 def get_all_connection_ids():
     response = table.query(
         KeyConditionExpression=Key('PK').eq('connection'),
+        ExpressionAttributeValues={
+            ":pk": "connessioni",
+            ":prefix": "conn#"
+        }
     )
     return [item['SK'] for item in response['Items']]
 
