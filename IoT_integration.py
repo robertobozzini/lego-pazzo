@@ -1,4 +1,5 @@
 import json
+from time import sleep
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from EV3_setup import *
 
@@ -17,36 +18,31 @@ client.connect()
 
 def send_update(color):
     if color == Color.RED:
-        client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "red_car", "stato" : "in"}), 1)
+        client.publish(topic, json.dumps({"PK" : "sensori", "SK" : "red_car", "stato" : "in"}), 1)
     elif color == Color.BLUE:
-        client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "blue_car", "stato" : "in"}), 1)
+        client.publish(topic, json.dumps({"PK" : "sensori", "SK" : "blue_car", "stato" : "in"}), 1)
     elif color_sensor_old == Color.RED:
-        client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "red_car", "stato" : "out"}), 1) 
+        client.publish(topic, json.dumps({"PK" : "sensori", "SK" : "red_car", "stato" : "out"}), 1) 
     elif color_sensor_old == Color.BLUE:
-        client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "blue_car", "stato" : "out"}), 1) 
+        client.publish(topic, json.dumps({"PK" : "sensori", "SK" : "blue_car", "stato" : "out"}), 1) 
     color_sensor_old = color
     
-def modify_stato(pk, sk, stato): # applica le modifiche
-    # if pk == "sensori":
-    #     if(sk == "gate_motor"):
+def modify_stato(PK, SK, stato): # applica le modifiche
+    # if PK == "sensori":
+    #     if(SK == "gate_motor"):
     #         gate_motor.angle(int(stato))
-    #     elif(sk == "red_lights"):
+    #     elif(SK == "red_lights"):
     #         red_lights.dc(100)
-    #     elif(sk == "blue_lights"):
+    #     elif(SK == "blue_lights"):
     #         blue_lights.dc(100)
-    print(pk, sk, stato)
-
+    print(PK, SK, stato)
+    
 def apply_update(client, userdata, message): # riceve update mandati da IoT
     data = json.loads(message.payload.decode())
-    for pk, sk, stato in data.items():
-        modify_stato(pk, sk, stato)
+    # print(data)
+    modify_stato(data.get("PK"), data.get("SK"), data.get("stato"))
         
 client.subscribe(topic, 1, apply_update)
-
-while True:
-    client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "red_car", "stato" : "in"}), 1)
-    client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "red_car", "stato" : "out"}), 1) 
-
 
 #     Turn on your device and make sure it's connected to the internet.
 #     Choose how you want to load files onto your device.
