@@ -16,15 +16,25 @@ client.configureCredentials(root_ca, private_key, certificate)
 
 client.connect()
 
+def create_json(car, action):
+    if car == "red_car" == action == "in" == True:
+        return json.dumps({"sensors" : {"PK" : "sensori", "SK" : "red_car", "stato" : "in"}, "client": "test"})
+    elif car =="blue_car" == action == "in" == True:
+        return json.dumps({"sensors" : {"PK" : "sensori", "SK" : "blue_car", "stato" : "in"}, "client": "test"})
+    elif car == "red_car" == action == "out" == True:
+        return json.dumps({"sensors" : {"PK" : "sensori", "SK" : "red_car", "stato" : "out"}, "client": "test"})
+    else:
+        return json.dumps({"sensors" : {"PK" : "sensori", "SK" : "blue_car", "stato" : "out"}, "client": "test"})
+
 def send_update(color):
     if color == Color.RED:
-        client.publish(topic, json.dumps({"PK" : "sensori", "SK" : "red_car", "stato" : "in"}), 1)
+        client.publish(topic, create_json("red_car", "in"), 1)
     elif color == Color.BLUE:
-        client.publish(topic, json.dumps({"PK" : "sensori", "SK" : "blue_car", "stato" : "in"}), 1)
+        client.publish(topic, create_json("blue_car", "in"), 1)
     elif color_sensor_old == Color.RED:
-        client.publish(topic, json.dumps({"PK" : "sensori", "SK" : "red_car", "stato" : "out"}), 1) 
+        client.publish(topic, create_json("red_car", "out"), 1) 
     elif color_sensor_old == Color.BLUE:
-        client.publish(topic, json.dumps({"PK" : "sensori", "SK" : "blue_car", "stato" : "out"}), 1) 
+        client.publish(topic, create_json("blue_car", "out"), 1) 
     color_sensor_old = color
     
 def modify_stato(PK, SK, stato): # applica le modifiche
@@ -39,10 +49,19 @@ def modify_stato(PK, SK, stato): # applica le modifiche
     
 def apply_update(client, userdata, message): # riceve update mandati da IoT
     data = json.loads(message.payload.decode())
-    # print(data)
-    modify_stato(data.get("PK"), data.get("SK"), data.get("stato"))
+    print("Recv : ", data)
+    # modify_stato(it.get("PK"), it.get("SK"), it.get("stato"))
+    # for it in data:
         
 client.subscribe(topic, 1, apply_update)
+
+while True:
+    continue
+    # sleep(1)
+    
+# {'state': {'reported': {'sensors': {'light': 'Color.BLACK'}, 'device': {'client': 'test', 'uptime': 1153125}}},
+# 'metadata': {'reported': {'sensors': {'light': {'timestamp': 1749633960}},'device': {'client': {'timestamp': 1749633960}, 'uptime': {'timestamp': 1749633960}}}},
+# 'version': 220, 'timestamp': 1749633960}
 
 #     Turn on your device and make sure it's connected to the internet.
 #     Choose how you want to load files onto your device.

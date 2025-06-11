@@ -5,7 +5,7 @@ ddb=boto3.resource('dynamodb',region_name='eu-north-1')
 # table=dynamodb.Table('Alternanza_CLI')
 table = ddb.Table('lego-pazzo')
 def lambda_handler(event, context):
-    instruction=event['requestContext']['inst'] 
+
     connection_id = event['requestContext']['connectionId']
     # ddb = boto3.resource('dynamodb')
     if(instruction==0):
