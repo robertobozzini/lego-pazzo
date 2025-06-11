@@ -2,6 +2,7 @@ import json
 import boto3
 from boto3.dynamodb.conditions import Key
 
+iot_data = boto3.client('iot-data')
 dynamodb = boto3.resource('dynamodb', region_name='eu-north-1')
 table = dynamodb.Table('lego-pazzo2')
 
@@ -68,6 +69,15 @@ def lambda_handler(event, context):
             'valore': motor
         }
     )
+
+    if ligth_sensor in ['Color.RED', 'Color.BLUE']:
+        iot_data.publish(topic='$aws/things/Centralina/shadow/update', payload=json.dumps(
+            {"state": {"reported": {"sensors": {"motor": "ON"}, "device": {"client": "aws", "uptime": 576006}}}}
+        ))
+    else:
+        iot_data.publish(topic='$aws/things/Centralina/shadow/update', payload=json.dumps(
+            {"state": {"reported": {"sensors": {"motor": "OFF"}, "device": {"client": "aws", "uptime": 576006}}}}
+        ))
 
     # if device in ("red_car", "blue_car"):
     #     id_val_car = device
