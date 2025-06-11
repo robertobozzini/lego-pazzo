@@ -2,83 +2,86 @@ import json
 import boto3
 
 dynamodb = boto3.resource('dynamodb', region_name='eu-north-1')
-table = dynamodb.Table('lego-pazzo')
-
-sns = boto3.client('sns')   
-sns_topic_arn = 'arn:aws:sns:eu-north-1:919788038405:topic2'
+table = dynamodb.Table('lego-pazzo2')
 
 
-def lambda2_send():
-    response=table.scan()
-    items=response['Items']
-    
-    sns.publish(
-        TopicArn=sns_topic_arn,
-        Message=json.dumps({"records": items})
+def scan_full_table():
+    items = []
+    response = table.scan()
+    items.extend(response['Items'])
+
+    while 'LastEvaluatedKey' in response:
+        response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+        items.extend(response['Items'])
+
+    return items
+
+
+def get_all_connection_ids():
+    response = table.scan(
+        FilterExpression="begins_with(SK, :prefix)",
+        ExpressionAttributeValues={":prefix": "conn#"}
+    )
+    return [item['SK'].replace("conn#", "") for item in response['Items']]
+
+
+def send_to_all_connections(data, endpoint_url):
+    client = boto3.client(
+        'apigatewaymanagementapi',
+        endpoint_url=endpoint_url
     )
 
-    return {"statusCode": 200, "message": "Inviato a SNS"}
+    connection_ids = get_all_connection_ids()
 
+    for connection_id in connection_ids:
+        try:
+            client.post_to_connection(
+                ConnectionId=connection_id,
+                Data=json.dumps(data).encode('utf-8')
+            )
+        except client.exceptions.GoneException:
+            print(f"Connessione {connection_id} non più attiva — rimuovo.")
+            table.delete_item(Key={'SK': f'conn#{connection_id}'})
 
 
 def lambda_handler(event, context):
-    # Event SNS contiene Records -> [ { Sns: { Message: ... } } ]
-    cond=True
-    for record in event['Records']:
-        message = json.loads(record['Sns']['Message'])
-        
-        device=message['id']
+    print(event)
+    message = event.get('payload') or event.get('message') or event
+    if isinstance(message, str):
+        try:
+            message = json.loads(message)
+        except json.JSONDecodeError:
+            pass
 
-        if device=="red_car" or device=="blue_car":
-            id_val_car = message['id']
-            car_status = message['stato']  # esempio: {"status": "active", "count": 12}
+    device = message.get('SK')
 
-            verifica=table.get_item(
-                Key={'id': id_val_car}
-            )
-            item = verifica.get('Item')
+    if device in ("red_car", "blue_car"):
+        id_val_car = device
+        car_status = message['stato']
 
-            if item and item.get('stato')==car_status:
-                cond=False
-                continue
+        verifica = table.get_item(Key={'SK': id_val_car, 'PK':'sensori'})
+        item = verifica.get('Item')
 
-            update_expression = "SET stato = :s"
-            expr_vals = {":s": car_status}
-
+        if not item or item.get('stato') != car_status:
             table.update_item(
-                Key={'id': id_val_car},
-                UpdateExpression=update_expression,
-                ExpressionAttributeValues=expr_vals
+                Key={'SK': id_val_car, 'PK':'sensori'},
+                UpdateExpression="SET stato = :s",
+                ExpressionAttributeValues={":s": car_status}
             )
 
-            id_gate="gate_motor"
-            gate_status=message['stato']   
+            gate_value = "90" if car_status == "in" else "0"
+            table.update_item(
+                Key={'SK': "gate_motor", 'PK':'sensori'},
+                UpdateExpression="SET stato = :s",
+                ExpressionAttributeValues={":s": gate_value}
+            )
 
-            if gate_status=="in":
-                expr_vals={":s": "90"}   
+    all_items = scan_full_table()
+    endpoint = "wss://5l3ibg8vdb.execute-api.eu-north-1.amazonaws.com"  # <-- metti il tuo endpoint WebSocket
 
-                table.update_item(
-                    Key={'id':id_gate},
-                    UpdateExpression=update_expression,
-                    ExpressionAttributeValues=expr_vals
-                )
-            else:
-                expr_vals={":s": "0"}   
-                table.update_item(
-                    Key={'id':id_gate},
-                    UpdateExpression=update_expression,
-                    ExpressionAttributeValues=expr_vals
-                )
+    send_to_all_connections(all_items, endpoint)
 
-            if id_val_car=="red_car":
-                #cambiamo alcuni sensori
-                continue
-            else:
-                #cambio altri
-                continue
-    
-    if cond==True: lambda2_send()
-    
-
-
-    return {"statusCode": 200}
+    return {
+        "statusCode": 200,
+        "body": "Dati inviati via WebSocket"
+    }
