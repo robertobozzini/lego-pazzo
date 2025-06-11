@@ -5,9 +5,12 @@ dynamodb = boto3.resource('dynamodb', region_name='eu-north-1')
 table = dynamodb.Table('lego-pazzo2')
 
 def get_all_connection_ids():
-    response = table.scan(
-        FilterExpression="begins_with(SK, :prefix)",
-        ExpressionAttributeValues={":prefix": "conn#"}
+    response = table.query(
+        KeyConditionExpression="PK = :pk AND begins_with(SK, :prefix)",
+        ExpressionAttributeValues={
+            ":pk": "connessioni",  
+            ":prefix": "conn#"
+        }
     )
     return [item['SK'].replace("conn#", "") for item in response['Items']]
 
