@@ -1,29 +1,19 @@
 import json
 import boto3
+from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb', region_name='eu-north-1')
 table = dynamodb.Table('lego-pazzo2')
 
-
-def scan_full_table():
-    items = []
-    response = table.scan()
-    items.extend(response['Items'])
-
-    while 'LastEvaluatedKey' in response:
-        response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-        items.extend(response['Items'])
-
-    return items
-
-
 def get_all_connection_ids():
-    response = table.scan(
-        FilterExpression="begins_with(SK, :prefix)",
-        ExpressionAttributeValues={":prefix": "conn#"}
+    response = table.query(
+        KeyConditionExpression=Key('PK').eq('connection'),
+        ExpressionAttributeValues={
+            ":pk": "connessioni",
+            ":prefix": "conn#"
+        }
     )
-    return [item['SK'].replace("conn#", "") for item in response['Items']]
-
+    return [item['SK'] for item in response['Items']]
 
 def send_to_all_connections(data, endpoint_url):
     client = boto3.client(
@@ -43,43 +33,70 @@ def send_to_all_connections(data, endpoint_url):
             print(f"Connessione {connection_id} non più attiva — rimuovo.")
             table.delete_item(Key={'SK': f'conn#{connection_id}'})
 
-
 def lambda_handler(event, context):
-    print(event)
+    print("Evento ricevuto:", event)
     message = event.get('payload') or event.get('message') or event
     if isinstance(message, str):
         try:
             message = json.loads(message)
         except json.JSONDecodeError:
-            pass
+            print("Errore nel parsing del JSON")
+            return
 
-    device = message.get('SK')
+    print("Messaggio dopo parsing:", message)
+    client = message.get('state', {}).get("reported", {}).get('device', {}).get('client')
+    print("Client", client)
+    if not client or client == 'aws':
+        print("Client aws, ignoro il messaggio.")
+        return
 
-    if device in ("red_car", "blue_car"):
-        id_val_car = device
-        car_status = message['stato']
+    ligth_sensor = message.get('state', {}).get("reported", {}).get('sensors', {}).get('light')
+    motor = message.get('state', {}).get("reported", {}).get('sensors', {}).get('motor')
 
-        verifica = table.get_item(Key={'SK': id_val_car, 'PK':'sensori'})
-        item = verifica.get('Item')
+    table.put_item(
+        Item={
+            'PK': 'sensori',
+            'SK': 'light_sensor',
+            'valore': ligth_sensor
+        }
+    )
 
-        if not item or item.get('stato') != car_status:
-            table.update_item(
-                Key={'SK': id_val_car, 'PK':'sensori'},
-                UpdateExpression="SET stato = :s",
-                ExpressionAttributeValues={":s": car_status}
-            )
+    table.put_item(
+        Item={
+            'PK': 'sensori',
+            'SK': 'motor',
+            'valore': motor
+        }
+    )
 
-            gate_value = "90" if car_status == "in" else "0"
-            table.update_item(
-                Key={'SK': "gate_motor", 'PK':'sensori'},
-                UpdateExpression="SET stato = :s",
-                ExpressionAttributeValues={":s": gate_value}
-            )
+    # if device in ("red_car", "blue_car"):
+    #     id_val_car = device
+    #     car_status = message['stato']
 
-    all_items = scan_full_table()
-    endpoint = "wss://5l3ibg8vdb.execute-api.eu-north-1.amazonaws.com"  # <-- metti il tuo endpoint WebSocket
+    #     verifica = table.get_item(Key={'SK': id_val_car, 'PK': 'sensori'})
+    #     item = verifica.get('Item')
 
-    send_to_all_connections(all_items, endpoint)
+    #     if not item or item.get('stato') != car_status:
+    #         table.update_item(
+    #             Key={'SK': id_val_car, 'PK': 'sensori'},
+    #             UpdateExpression="SET stato = :s",
+    #             ExpressionAttributeValues={":s": car_status}
+    #         )
+
+    #         updated_item = {"SK": id_val_car, "stato": car_status}
+
+    #         gate_value = "90" if car_status == "in" else "0"
+    #         table.update_item(
+    #             Key={'SK': "gate_motor", 'PK': 'sensori'},
+    #             UpdateExpression="SET stato = :s",
+    #             ExpressionAttributeValues={":s": gate_value}
+    #         )
+
+    #         updated_item_gate = {"SK": "gate_motor", "stato": gate_value}
+
+    #         endpoint = "wss://5l3ibg8vdb.execute-api.eu-north-1.amazonaws.com"  # <-- Metti il tuo endpoint WebSocket
+
+    #         send_to_all_connections([updated_item, updated_item_gate], endpoint)
 
     return {
         "statusCode": 200,
