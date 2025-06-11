@@ -16,15 +16,25 @@ client.configureCredentials(root_ca, private_key, certificate)
 
 client.connect()
 
+def create_json(car, action):
+    if car == "red_car" == action == "in" == True:
+        return json.dumps({"sensors" : {"PK" : "sensori", "SK" : "red_car", "stato" : "in"}, "client": "test"})
+    elif car =="blue_car" == action == "in" == True:
+        return json.dumps({"sensors" : {"PK" : "sensori", "SK" : "blue_car", "stato" : "in"}, "client": "test"})
+    elif car == "red_car" == action == "out" == True:
+        return json.dumps({"sensors" : {"PK" : "sensori", "SK" : "red_car", "stato" : "out"}, "client": "test"})
+    else:
+        return json.dumps({"sensors" : {"PK" : "sensori", "SK" : "blue_car", "stato" : "out"}, "client": "test"})
+
 def send_update(color):
     if color == Color.RED:
-        client.publish(topic, json.dumps({"sensors" : {"PK" : "sensori", "SK" : "red_car", "stato" : "in"}, "client": "test"}), 1)
+        client.publish(topic, create_json("red_car", "in"), 1)
     elif color == Color.BLUE:
-        client.publish(topic, json.dumps({"sensors" : {"PK" : "sensori", "SK" : "blue_car", "stato" : "in"}, "client": "test"}), 1)
+        client.publish(topic, create_json("blue_car", "in"), 1)
     elif color_sensor_old == Color.RED:
-        client.publish(topic, json.dumps({"sensors" : {"PK" : "sensori", "SK" : "red_car", "stato" : "out"}, "client": "test"}), 1) 
+        client.publish(topic, create_json("red_car", "out"), 1) 
     elif color_sensor_old == Color.BLUE:
-        client.publish(topic, json.dumps({"sensors" : {"PK" : "sensori", "SK" : "blue_car", "stato" : "out"}, "client": "test"}), 1) 
+        client.publish(topic, create_json("blue_car", "out"), 1) 
     color_sensor_old = color
     
 def modify_stato(PK, SK, stato): # applica le modifiche
