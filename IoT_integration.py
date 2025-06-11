@@ -5,9 +5,9 @@ from EV3_setup import *
 client_id = "Brick"
 endpoint = "a2dvm6ijdlolkr-ats.iot.eu-north-1.amazonaws.com"
 root_ca = "AmazonRootCA1.pem"
-private_key = "private.key"
-certificate = "certificate.pem.crt"
-topic = "test/topic"
+private_key = "Centralina.private.key"
+certificate = "93d66843aaef033a10d941356c43a6f874ff8dfb00ad5a0478cbfd31540c8f03-certificate.pem.crt"
+topic = "$aws/things/Centralina/shadow/update/accepted"
 
 client = AWSIoTMQTTClient(client_id)
 client.configureEndpoint(endpoint, 8883)
@@ -17,26 +17,36 @@ client.connect()
 
 def send_update(color):
     if color == Color.RED:
-        client.publish(topic, json.dumps({"id" : "red_car", "stato" : "in"}), 1)
+        client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "red_car", "stato" : "in"}), 1)
     elif color == Color.BLUE:
-        client.publish(topic, json.dumps({"id" : "blue_car", "stato" : "in"}), 1)
+        client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "blue_car", "stato" : "in"}), 1)
     elif color_sensor_old == Color.RED:
-        client.publish(topic, json.dumps({"id" : "red_car", "stato" : "out"}), 1) 
+        client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "red_car", "stato" : "out"}), 1) 
     elif color_sensor_old == Color.BLUE:
-        client.publish(topic, json.dumps({"id" : "blue_car", "stato" : "out"}), 1) 
+        client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "blue_car", "stato" : "out"}), 1) 
     color_sensor_old = color
     
-def modify_stato(id, stato): # applica le modifiche
-    if id == "gate_motor":
-        gate_motor.angle(stato)
-    return
+def modify_stato(pk, sk, stato): # applica le modifiche
+    # if pk == "sensori":
+    #     if(sk == "gate_motor"):
+    #         gate_motor.angle(int(stato))
+    #     elif(sk == "red_lights"):
+    #         red_lights.dc(100)
+    #     elif(sk == "blue_lights"):
+    #         blue_lights.dc(100)
+    print(pk, sk, stato)
 
 def apply_update(client, userdata, message): # riceve update mandati da IoT
     data = json.loads(message.payload.decode())
-    for id, stato in data.items():
-        modify_stato(id, stato)
+    for pk, sk, stato in data.items():
+        modify_stato(pk, sk, stato)
         
 client.subscribe(topic, 1, apply_update)
+
+while True:
+    client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "red_car", "stato" : "in"}), 1)
+    client.publish(topic, json.dumps({"pk" : "sensori", "sk" : "red_car", "stato" : "out"}), 1) 
+
 
 #     Turn on your device and make sure it's connected to the internet.
 #     Choose how you want to load files onto your device.
