@@ -77,7 +77,7 @@ def lambda_handler(event, context):
             )
 
     all_items = scan_full_table()
-    endpoint = "https://xxx.execute-api.eu-west-1.amazonaws.com/dev"  # <-- metti il tuo endpoint WebSocket
+    endpoint = "wss://5l3ibg8vdb.execute-api.eu-north-1.amazonaws.com"  # <-- metti il tuo endpoint WebSocket
 
     send_to_all_connections(all_items, endpoint)
 
